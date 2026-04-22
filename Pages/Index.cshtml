@@ -1,0 +1,37 @@
+@page
+@model MovieJournal.Pages.IndexModel
+
+<h1>My Movies</h1>
+
+@if (!Model.Movies.Any())
+{
+    <p>No movies yet. <a href="/Add">Add your first one!</a></p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Director</th>
+                <th>Year</th>
+                <th>Genre</th>
+                <th>Rating</th>
+                <th>Watched</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var movie in Model.Movies)
+            {
+                <tr>
+                    <td><a href="/Movie?id=@movie.Id">@movie.Title</a></td>
+                    <td>@movie.Director</td>
+                    <td>@movie.Year</td>
+                    <td>@movie.Genre</td>
+                    <td>@movie.Rating/10</td>
+                    <td>@movie.WatchedOn.ToString("MMM dd, yyyy")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

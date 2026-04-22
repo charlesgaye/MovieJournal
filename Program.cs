@@ -1,30 +1,35 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using MovieJournal.Data;
 using MovieJournal.Services;
-using MovieJournal.UI;
 
-System.Threading.Thread.CurrentThread.CurrentCulture = 
-    System.Globalization.CultureInfo.InvariantCulture;
+var builder = WebApplication.CreateBuilder(args);
 
-var services = new ServiceCollection();
+// Force invariant culture for all threads
+var invariantCulture = System.Globalization.CultureInfo.InvariantCulture;
+System.Globalization.CultureInfo.DefaultThreadCurrentCulture = invariantCulture;
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = invariantCulture;
 
-services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddRazorPages();
+builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=movies.db"));
 
-services.AddScoped<MovieRepository>();
-services.AddScoped<MovieService>();
-services.AddScoped<SearchService>();
-services.AddScoped<RecommendationService>();
-services.AddSingleton<TmdbClient>();
-services.AddScoped<ConsoleUI>();
+builder.Services.AddScoped<MovieRepository>();
+builder.Services.AddScoped<MovieService>();
+builder.Services.AddScoped<SearchService>();
+builder.Services.AddScoped<RecommendationService>();
+builder.Services.AddSingleton<TmdbClient>();
 
-var provider = services.BuildServiceProvider();
+var app = builder.Build();
+app.UseDeveloperExceptionPage();
 
-using var scope = provider.CreateScope();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+}
 
-var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-db.Database.EnsureCreated();
+app.UseStaticFiles();
+app.UseRouting();
+app.MapRazorPages();
 
-var ui = scope.ServiceProvider.GetRequiredService<ConsoleUI>();
-await ui.RunAsync();
+app.Run();

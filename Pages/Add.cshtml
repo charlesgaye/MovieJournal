@@ -1,0 +1,62 @@
+@page
+@model MovieJournal.Pages.AddModel
+
+<h1>Add a Movie</h1>
+
+@if (Model.Success)
+{
+    <p style="color:green">Movie added! <a href="/">Back to list</a></p>
+}
+
+@* Étape 1 : recherche *@
+@if (!Model.Results.Any() && !Model.Selected)
+{
+    <form method="post" asp-page-handler="Search">
+        <label>Search a movie</label>
+        <input type="text" name="query" placeholder="e.g. Inception" required />
+        <button type="submit">Search</button>
+    </form>
+}
+
+@* Étape 2 : sélection dans les résultats *@
+@if (Model.Results.Any())
+{
+    <h2>Select a movie</h2>
+    @foreach (var movie in Model.Results)
+    {
+        <form method="post" asp-page-handler="Select">
+            <input type="hidden" name="tmdbId" value="@movie.TmdbId" />
+            <input type="hidden" name="title" value="@movie.Title" />
+            <input type="hidden" name="year" value="@movie.ReleaseYear" />
+            <input type="hidden" name="genre" value="@movie.MainGenre" />
+            <button type="submit" style="width:100%;text-align:left;margin-bottom:0.5rem">
+                @movie.Title (@movie.ReleaseYear) — @movie.MainGenre
+            </button>
+        </form>
+    }
+}
+
+@* Étape 3 : noter le film sélectionné *@
+@if (Model.Selected)
+{
+    <div style="background:white;padding:1.5rem;border-radius:8px;margin-bottom:1rem">
+        <h2>@Model.SelectedMovie!.Title (@Model.SelectedMovie.ReleaseYear)</h2>
+        <p>Director : @Model.SelectedDirector</p>
+        <p>Genre : @Model.SelectedMovie.MainGenre</p>
+    </div>
+
+    <form method="post" asp-page-handler="Add">
+        <input type="hidden" name="title" value="@Model.SelectedMovie.Title" />
+        <input type="hidden" name="director" value="@Model.SelectedDirector" />
+        <input type="hidden" name="year" value="@Model.SelectedMovie.ReleaseYear" />
+        <input type="hidden" name="genre" value="@Model.SelectedMovie.MainGenre" />
+
+        <label>Your rating (0-10)</label>
+        <input type="number" name="rating" min="0" max="10" step="0.1" required />
+
+        <label>Comment (optional)</label>
+        <textarea name="comment"></textarea>
+
+        <button type="submit">Add to my journal</button>
+    </form>
+}

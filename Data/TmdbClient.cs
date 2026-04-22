@@ -79,4 +79,58 @@ public class TmdbClient
 
     private int ParseYear(string? date)
         => int.TryParse(date?.Split('-').FirstOrDefault(), out var y) ? y : 0;
+
+    public async Task<List<MovieSuggestion>> SearchMovieAsync(string query)
+    {
+        var url = $"{BaseUrl}/search/movie?query={Uri.EscapeDataString(query)}&language=fr-FR";
+        var response = await _http.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(json);
+        var results = doc.RootElement.GetProperty("results");
+
+        var genreMap = await GetGenreMapAsync();
+        var movies = new List<MovieSuggestion>();
+
+        foreach (var item in results.EnumerateArray().Take(5))
+        {
+            var genreIds = item.GetProperty("genre_ids")
+                .EnumerateArray()
+                .Select(g => g.GetInt32())
+                .ToList();
+
+            movies.Add(new MovieSuggestion
+            {
+                TmdbId = item.GetProperty("id").GetInt32(),
+                Title = item.GetProperty("title").GetString() ?? "",
+                Overview = item.GetProperty("overview").GetString() ?? "",
+                ReleaseYear = ParseYear(item.GetProperty("release_date").GetString()),
+                Popularity = item.GetProperty("popularity").GetDouble(),
+                GenreIds = genreIds,
+                MainGenre = genreIds
+                    .Select(id => genreMap.TryGetValue(id, out var n) ? n : null)
+                    .FirstOrDefault(n => n != null) ?? "Unknown"
+            });
+        }
+
+        return movies;
+    }
+
+    public async Task<string?> GetDirectorAsync(int tmdbId)
+    {
+        var url = $"{BaseUrl}/movie/{tmdbId}/credits?language=fr-FR";
+        var response = await _http.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+        var doc = JsonDocument.Parse(json);
+
+        return doc.RootElement
+            .GetProperty("crew")
+            .EnumerateArray()
+            .FirstOrDefault(p => p.GetProperty("job").GetString() == "Director")
+            .GetProperty("name")
+            .GetString();
+    }
 }

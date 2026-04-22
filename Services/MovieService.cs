@@ -98,4 +98,10 @@ public class MovieService
         Console.WriteLine($"Genre favori    : {favoriteGenre}");
         Console.WriteLine($"Meilleur film   : {bestMovie.Title} ({bestMovie.Rating}/10)");
     }
+
+    public async Task<List<Movie>> GetAllMoviesAsync()
+    => await _repository.GetAllAsync();
+
+    public async Task<Movie?> GetMovieByIdAsync(int id)
+    => await _repository.GetByIdAsync(id);
 }

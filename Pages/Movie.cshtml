@@ -1,0 +1,46 @@
+@page
+@model MovieJournal.Pages.MovieModel
+
+@if (Model.ErrorMessage is not null)
+{
+    <p style="color:red">@Model.ErrorMessage</p>
+}
+else if (Model.Film is not null)
+{
+    <h1>@Model.Film.Title</h1>
+
+    <div class="detail-card">
+        <div class="detail-row">
+            <span class="label">Director</span>
+            <span>@Model.Film.Director</span>
+        </div>
+        <div class="detail-row">
+            <span class="label">Year</span>
+            <span>@Model.Film.Year</span>
+        </div>
+        <div class="detail-row">
+            <span class="label">Genre</span>
+            <span>@Model.Film.Genre</span>
+        </div>
+        <div class="detail-row">
+            <span class="label">Rating</span>
+            <span>@Model.Film.Rating / 10</span>
+        </div>
+        <div class="detail-row">
+            <span class="label">Watched on</span>
+            <span>@Model.Film.WatchedOn.ToString("MMMM dd, yyyy")</span>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Film.Comment))
+        {
+            <div class="detail-row">
+                <span class="label">Comment</span>
+                <span>@Model.Film.Comment</span>
+            </div>
+        }
+    </div>
+
+    <div style="margin-top:1.5rem;display:flex;gap:1rem">
+        <a href="/" class="btn">Back to list</a>
+        <!-- <a href="/Edit?id=@Model.Film.Id" class="btn">Edit</a> --->
+    </div>
+}
